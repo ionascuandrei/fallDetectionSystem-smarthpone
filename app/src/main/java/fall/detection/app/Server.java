@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -100,9 +101,12 @@ public class Server extends Thread {
                     Log.v(Constants.TAG, "Connection opened with " + client.getInetAddress() + ":" + client.getLocalPort());
 
                     InputStream in = client.getInputStream();
+                    OutputStream out = client.getOutputStream();
                     Scanner s = new Scanner(in, "UTF-8");
                     try {
                         String data = s.useDelimiter("\\r\\n\\r\\n").next();
+                        Log.v(Constants.TAG, "Message from client:\n" + data);
+                        Log.v(Constants.TAG, "\n============================\n");
                         Matcher get = Pattern.compile("^GET").matcher(data);
                         if (get.find()) {
                             Matcher match = Pattern.compile("Sec-WebSocket-Key: (.*)").matcher(data);
@@ -114,26 +118,28 @@ public class Server extends Thread {
                                     + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("UTF-8")))
                                     + "\r\n\r\n").getBytes("UTF-8");
                             out.write(response, 0, response.length);
-                            byte[] decoded = new byte[6];
-                            byte[] encoded = new byte[] { (byte) 198, (byte) 131, (byte) 130, (byte) 182, (byte) 194, (byte) 135 };
-                            byte[] key = new byte[] { (byte) 167, (byte) 225, (byte) 225, (byte) 210 };
-                            for (int i = 0; i < encoded.length; i++) {
-                                decoded[i] = (byte) (encoded[i] ^ key[i & 0x3]);
-                            }
+
+//                            byte[] decoded = new byte[6];
+//                            byte[] encoded = new byte[] { (byte) 198, (byte) 131, (byte) 130, (byte) 182, (byte) 194, (byte) 135 };
+//                            byte[] key = new byte[] { (byte) 167, (byte) 225, (byte) 225, (byte) 210 };
+//                            for (int i = 0; i < encoded.length; i++) {
+//                                decoded[i] = (byte) (encoded[i] ^ key[i & 0x3]);
+//                            }
                         }
                     } catch (NoSuchAlgorithmException e) {
                         e.printStackTrace();
-                    } finally {
-                        s.close();
                     }
-                    PrintWriter printWriter = Utilities.getWriter(client);
-                    printWriter.println("Serverul te saluta!");
-                    client.close();
-                    Log.v(Constants.TAG, "Connection closed");
+                    Log.v(Constants.TAG, "Handshake done!");
+
+//                    PrintWriter printWriter = Utilities.getWriter(client);
+//                    printWriter.println("Serverul te saluta!");
+//                    client.close();
+//                    Log.v(Constants.TAG, "Connection closed");
                 }
             }
         } catch (SocketException socketException) {
             // It is normal if you close the server while socketServer waits for connection in .accept()
+            isRunning = false;
             Log.e(Constants.TAG, "Server closed while waiting for socket connection [" + socketException.getMessage() + "]");
         } catch (IOException ioException) {
             Log.e(Constants.TAG, "An exception has occurred: " + ioException.getMessage());
