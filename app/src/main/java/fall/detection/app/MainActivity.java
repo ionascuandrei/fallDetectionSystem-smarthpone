@@ -17,8 +17,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView serverStatusView;
     private Button startServerButton;
     private Button stopServerButton;
-    private Button stopThreadButton;
-    private TextView threadStatusView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,26 +30,20 @@ public class MainActivity extends AppCompatActivity {
         serverStatusView = findViewById(R.id.serverStatusView);
         startServerButton = findViewById(R.id.startServerButton);
         stopServerButton = findViewById(R.id.stopServerButton);
-        stopThreadButton = findViewById(R.id.stopThread);
-        threadStatusView = findViewById(R.id.threadView);
 
         // Initialize values
-        serverStatusView.setText(Constants.serverStatus);
-        if (serverThread.isThreadActive().get()) {
-            threadStatusView.setText(Constants.Active);
+        if (serverThread.isServerRunning().get()) {
+            serverStatusView.setText(Constants.Active);
         } else {
-            threadStatusView.setText(Constants.Closed);
+            serverStatusView.setText(Constants.Closed);
         }
 
         // Start server event listener
         startServerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!serverThread.isServerRunning()) {
+                if (!serverThread.isServerRunning().get()) {
                     serverThread.startServer();
-                    if (serverThread.isThreadActive().get()) {
-                        threadStatusView.setText(Constants.Active);
-                    }
                     serverStatusView.setText(new String("Server online"));
                 }
             }
@@ -61,22 +53,9 @@ public class MainActivity extends AppCompatActivity {
         stopServerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (serverThread.isServerRunning()) {
-                    serverStatusView.setText(new String("Server offline"));
+                if (serverThread.isServerRunning().get()) {
                     serverThread.stopServer();
-                }
-            }
-        });
-
-        // Stop thread event listener
-        stopThreadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (serverThread.isThreadActive().get()) {
-                    serverThread.stopThread();
-                    threadStatusView.setText(Constants.Closed);
                     serverStatusView.setText(new String("Server offline"));
-                    serverThread = Server.instance();
                 }
             }
         });
