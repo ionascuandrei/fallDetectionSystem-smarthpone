@@ -1,12 +1,12 @@
 package fall.detection.app;
 
 import android.util.Log;
-import android.widget.TextView;
+
+import androidx.lifecycle.MutableLiveData;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -27,14 +27,17 @@ public class Server extends Thread {
     private static Server serverInstance;
 
     // Server variables
-    private final AtomicBoolean isRunning;
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private ServerSocket serverSocket;
+
+    // LiveData variables for UI
+    MutableLiveData<String> debugPanel = new MutableLiveData<>();
+    MutableLiveData<String> serverStatus = new MutableLiveData<>();
 
     // Connection variables
 
     // Constructor
     public Server() {
-        isRunning = new AtomicBoolean(false);
     }
 
     public AtomicBoolean isServerRunning() {
@@ -52,14 +55,17 @@ public class Server extends Thread {
     public void startServer() {
         if (!isRunning.get()) {
             isRunning.set(true);
-            start();
+            serverStatus.postValue(Constants.serverOnline);
             Log.i(Constants.TAG, "Server started!");
+            start();
         }
     }
 
     public void stopServer() {
         isRunning.set(false);
-        serverInstance = new Server();
+        serverStatus.setValue(Constants.serverOffline);
+        Log.i(Constants.TAG, "Server stopped!");
+
         try {
             if (serverSocket != null) {
                 serverSocket.close();
@@ -71,7 +77,6 @@ public class Server extends Thread {
                 ioException.printStackTrace();
             }
         }
-        Log.i(Constants.TAG, "Server stopped!");
     }
 
     private void upgradeToWebSocket(InputStream in, OutputStream out) {
@@ -91,9 +96,14 @@ public class Server extends Thread {
                         + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes("UTF-8")))
                         + "\r\n\r\n").getBytes("UTF-8");
                 out.write(response, 0, response.length);
+
+                // Debug info
+                debugPanel.postValue("Handshake completed!\n");
                 Log.i(Constants.TAG, "Handshake complete!");
             }
         } catch (NoSuchAlgorithmException | IOException exception) {
+            // Debug info
+            debugPanel.postValue("An exception has occurred on upgradeToWebSocket():\n" + exception.getMessage() + "\n");
             Log.e(Constants.TAG, "An exception has occurred on upgradeToWebSocket(): " + exception.getMessage());
             if (Constants.DEBUG) {
                 exception.printStackTrace();
@@ -110,9 +120,13 @@ public class Server extends Thread {
                     // The server was activated now
                     Log.i(Constants.TAG, "ServerSocket initialized!");
                     serverSocket = new ServerSocket(Constants.SERVER_PORT);
+                    // Debug info
+                    debugPanel.postValue("ServerSocket initialized!\n");
                 }
                 // Waiting for connection
                 Socket client = serverSocket.accept();
+                // Debug info
+                debugPanel.postValue("Connection opened with " + client.getInetAddress() + ":" + client.getLocalPort() +"\n");
                 Log.i(Constants.TAG, "Connection opened with " + client.getInetAddress() + ":" + client.getLocalPort());
                 // Get input/output streams with client
                 InputStream in = client.getInputStream();
@@ -138,8 +152,12 @@ public class Server extends Thread {
         } catch (SocketException socketException) {
             // It is normal if you close the server while socketServer waits for connection in .accept()
             isRunning.set(false);
+            // Debug info
+            debugPanel.postValue("Server closed while waiting for socket connection [" + socketException.getMessage() + "]\n");
             Log.i(Constants.TAG, "Server closed while waiting for socket connection [" + socketException.getMessage() + "]");
         } catch (IOException ioException) {
+            // Debug info
+            debugPanel.postValue("An exception has occurred: \n" + ioException.getMessage() + "\n");
             Log.e(Constants.TAG, "An exception has occurred: " + ioException.getMessage());
             if (Constants.DEBUG) {
                 ioException.printStackTrace();

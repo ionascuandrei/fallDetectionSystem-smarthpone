@@ -4,7 +4,8 @@ public interface Constants {
 
     public final static String SERVER_HOST = "localhost";
     public final static int SERVER_PORT = 2017;
-    final public static String serverStatus ="Server offline";
+    final public static String serverOffline ="Server offline";
+    final public static String serverOnline ="Server online";
     final public static String Active ="Active";
     final public static String Closed ="Closed";
 
