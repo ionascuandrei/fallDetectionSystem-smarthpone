@@ -132,6 +132,7 @@ public class RootActivity extends AppCompatActivity {
             }
         } else {
             Log.e("EROARE", "AJUNG SI AIIIIIIIICI LA RESTORE INSTANCE");
+            debugPanelView.append("[ERROR] AJUNG SI AIIIIIIIICI LA RESTORE INSTANCE\n");
         }
     }
 }

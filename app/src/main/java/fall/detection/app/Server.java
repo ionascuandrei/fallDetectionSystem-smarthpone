@@ -29,6 +29,7 @@ public class Server extends Thread {
 
     // Constructor
     public Server() {
+        serverInstance = this;
         debugData = "";
     }
 
