@@ -64,7 +64,7 @@ public class Server extends Thread {
 
     public void stopServer() {
         try {
-            if (webSocketServer.clientSocket != null) {
+            if (webSocketServer.clientSocket != null && webSocketServer.clientSocket.isOpen()) {
                 JSONObject message = new JSONObject();
                 message.put("title", "serverClosed");
                 webSocketServer.clientSocket.send(message.toString());

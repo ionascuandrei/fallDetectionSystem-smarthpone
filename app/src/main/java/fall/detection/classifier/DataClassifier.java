@@ -1,8 +1,14 @@
 package fall.detection.classifier;
 
+import android.util.Log;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+
+
+import fall.detection.general.Constants;
+import fall.detection.classifier.FeatureExtractor;
 
 /**
  * Computes a file which contains features of all the actions given in the input files in the classification format:
@@ -21,6 +27,7 @@ public class DataClassifier {
 
     private static ArrayList<Float> sampleFeatures;
     private static String parsedFeatures;
+    private static String standardizedFeatures;
 
     /**
      * Computes the features for each axis.
@@ -54,65 +61,41 @@ public class DataClassifier {
 
     private static ArrayList<Float> int16ToFloat32Converter (ArrayList<Integer> inputArray) {
         ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
+        Log.i(Constants.WSS, "Size:" + inputArray.size() + "INPUT: " + inputArray.toString());
         for (int i = 0; i < inputArray.size(); i++) {
-            int value = inputArray.get(i);
+            float value = inputArray.get(i);
+//            System.out.println("I: " + i + " value: " + value);
             // If the high bit is on, then it is a negative number, and actually counts backwards.
-            float convertedValue = (value >= 0x8000) ? -(0x10000 - value) / 0x8000 : value / 0x7FFF;
-            convertedResult.set(i, convertedValue);
+            float convertedValue = (value >= 0x8000) ? - ((0x10000 - value) / 0x8000) :  (value / 0x7FFF);
+//            Log.i(Constants.WSS, "CONV: " + convertedValue);
+            convertedResult.add(i, convertedValue);
         }
         return convertedResult;
     }
 
     public static String classifyData(ArrayList<Integer> xArray, ArrayList<Integer> yArray, ArrayList<Integer> zArray) {
+        // Convert 16Int to 32Float
         ArrayList<Float> convertedXArray = int16ToFloat32Converter(xArray);
         ArrayList<Float> convertedYArray = int16ToFloat32Converter(yArray);
         ArrayList<Float> convertedZArray = int16ToFloat32Converter(zArray);
 
-        System.out.println("X: " + convertedXArray.toString());
-        System.out.println("Y: " + convertedYArray.toString());
-        System.out.println("Z: " + convertedZArray.toString());
+        Log.i(Constants.WSS,  "X: " + convertedXArray.toString());
+        Log.i(Constants.WSS,  "Y: " + convertedYArray.toString());
+        Log.i(Constants.WSS,  "Z: " + convertedZArray.toString());
+
+        // TODO: Schimba daca este nevoie din ADL in altceva
+        parsedFeatures = ADL;
+        // Save data in DataParser
+        DataParser.extractData(convertedXArray, convertedYArray, convertedZArray);
+        // Compute features for the given samples
+        createAxisFeatures(DataParser.getxSamples(), DataParser.getySamples(), DataParser.getzSamples());
+        // Create string of parsed data in classification format
+        String dataString = getParsedFeatures();
+        // Standardize data
+        standardizedFeatures = DataStandardize.standardizeData(dataString);
 
         // TODO: Return processed value
         return null;
     }
 
-    public static void main(String[] args) {
-        if (args.length < 4) {
-            System.err.print("usage: trainingDataCreator <nr_of_input_files> <path_to_files> <file1 file2 ...> <output_file>\n");
-            System.exit(1);
-        } else {
-            if (Integer.parseInt(args[0]) > 0) {
-                try {
-                    FileWriter output = new FileWriter(args[args.length-1]);
-
-                    for (int i = 0; i < Integer.parseInt(args[0]); i++) {
-                        // Concatenating path of the file with the actual name
-                        String fileName = args[1] + args[i+2];
-                        // Get from file name if it is a FALL (F) or ADL (D) action
-                        if (args[i+2].charAt(0) == 'F') {
-                            parsedFeatures = FALL;
-                        } else {
-                            parsedFeatures = ADL;
-                        }
-                        // Printing for debug purpose
-                        System.out.println("[trainingDataCreator] " + fileName);
-                        // Parse data from given file
-                        DataParser.extractFilesData(fileName);
-                        // Compute features for the given samples
-                        createAxisFeatures(DataParser.getxSamples(), DataParser.getySamples(), DataParser.getzSamples());
-                        // Write on output file features in classification format
-                        output.write(getParsedFeatures());
-                        output.write("\n");
-                    }
-                    output.close();
-                } catch (IOException e) {
-                    System.err.print("There was a problem at creating the output file\n");
-                    e.printStackTrace();
-                }
-            } else {
-                System.err.print("<nr_of_input_files> should be > 0\n");
-                System.exit(1);
-            }
-        }
-    }
 }
