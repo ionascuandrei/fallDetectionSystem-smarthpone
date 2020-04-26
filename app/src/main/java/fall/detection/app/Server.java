@@ -2,6 +2,10 @@ package fall.detection.app;
 
 import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -60,6 +64,11 @@ public class Server extends Thread {
 
     public void stopServer() {
         try {
+            if (webSocketServer.clientSocket != null) {
+                JSONObject message = new JSONObject();
+                message.put("title", "serverClosed");
+                webSocketServer.clientSocket.send(message.toString());
+            }
             webSocketServer.stop();
             isRunning.set(false);
             serverStatus.setValue(Constants.serverOffline);
@@ -68,7 +77,7 @@ public class Server extends Thread {
                 debugPanel.postValue("Server stopped!\n");
                 Log.i(SERVER, "Server stopped!");
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | JSONException e) {
             e.printStackTrace();
         }
     }

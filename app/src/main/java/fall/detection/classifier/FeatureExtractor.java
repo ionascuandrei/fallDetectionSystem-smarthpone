@@ -12,7 +12,7 @@ import java.util.Collections;
  *     - Kurtosis
  *     - Skewness
  */
-public class featureExtractor {
+public class FeatureExtractor {
     private static int featuresNumber = 6;
     private static float maximumAmplitude;
     private static float minimumAmplitude;

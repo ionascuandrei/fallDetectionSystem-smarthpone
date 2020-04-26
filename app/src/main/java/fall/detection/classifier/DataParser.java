@@ -13,7 +13,7 @@ import java.util.Scanner;
  *
  * To avoid future bugs, all the whitespaces will be removed in the parser.
  */
-public class dataParser {
+public class DataParser {
     /**
      * Arrays for accelerometer values for axes X, Y, Z
      */

@@ -14,7 +14,7 @@ import java.util.StringTokenizer;
  *  < class_label 1:maximum_amplitude ..... 18:Skewness >
  *
  */
-public class dataStandardize {
+public class DataStandardize {
     private static ArrayList<ArrayList<Float>> sampleFeatures = new ArrayList<>();
     private static ArrayList<Float> meanValue = new ArrayList<>();
     private static ArrayList<Float> standardDeviation = new ArrayList<>();
@@ -25,7 +25,7 @@ public class dataStandardize {
      * Calculates deviation for each feature.
      */
     public static void calculateDeviation() {
-        for (int feature = 0; feature < featureExtractor.getFeaturesNumber() * 3; feature++) {
+        for (int feature = 0; feature < FeatureExtractor.getFeaturesNumber() * 3; feature++) {
             for (int sample = 0; sample < sampleFeatures.size(); sample++) {
                 float variance = sampleFeatures.get(sample).get(feature) - meanValue.get(feature);
                 variance = (float) Math.pow(variance, 2);
@@ -52,7 +52,7 @@ public class dataStandardize {
      */
     public static void standardizeDataset() {
         for (int sample = 0; sample < sampleFeatures.size(); sample++) {
-            for (int feature = 0; feature < featureExtractor.getFeaturesNumber() * 3; feature++) {
+            for (int feature = 0; feature < FeatureExtractor.getFeaturesNumber() * 3; feature++) {
                 float stdValue = (sampleFeatures.get(sample).get(feature) - meanValue.get(feature))
                         / standardDeviation.get(feature);
                 sampleFeatures.get(sample).set(feature, stdValue);
@@ -104,7 +104,7 @@ public class dataStandardize {
             Scanner myReader = new Scanner(inputFile);
             int row = 0;
             // Mean array and Standard deviation array initialization
-            for (int i = 0; i< featureExtractor.getFeaturesNumber() * 3; i ++) {
+            for (int i = 0; i< FeatureExtractor.getFeaturesNumber() * 3; i ++) {
                 meanValue.add(0.0f);
                 standardDeviation.add(0.0f);
             }

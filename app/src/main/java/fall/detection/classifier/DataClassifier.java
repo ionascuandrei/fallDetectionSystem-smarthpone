@@ -14,7 +14,7 @@ import java.util.ArrayList;
  *  "1"  - Fall Action
  *  "-1" - ADL Action
  */
-public class trainingDataCreator {
+public class DataClassifier {
     private static int axisNumber = 3;
     private static String ADL = "-1";
     private static String FALL = "1";
@@ -31,14 +31,14 @@ public class trainingDataCreator {
      */
     public static void createAxisFeatures(ArrayList<Float> xSamples, ArrayList<Float> ySamples, ArrayList<Float> zSamples) {
         // Get features for X axis
-        featureExtractor.extractFeatures(xSamples);
-        sampleFeatures = featureExtractor.getFeatures();
+        FeatureExtractor.extractFeatures(xSamples);
+        sampleFeatures = FeatureExtractor.getFeatures();
         // Get features for Y axis
-        featureExtractor.extractFeatures(ySamples);
-        sampleFeatures.addAll(featureExtractor.getFeatures());
+        FeatureExtractor.extractFeatures(ySamples);
+        sampleFeatures.addAll(FeatureExtractor.getFeatures());
         // Get features for Z axis
-        featureExtractor.extractFeatures(zSamples);
-        sampleFeatures.addAll(featureExtractor.getFeatures());
+        FeatureExtractor.extractFeatures(zSamples);
+        sampleFeatures.addAll(FeatureExtractor.getFeatures());
     }
 
     /**
@@ -46,10 +46,34 @@ public class trainingDataCreator {
      * @return String with features
      */
     public static String getParsedFeatures() {
-        for (int index = 1; index <= featureExtractor.getFeaturesNumber() * axisNumber; index++) {
+        for (int index = 1; index <= FeatureExtractor.getFeaturesNumber() * axisNumber; index++) {
             parsedFeatures = parsedFeatures + " " + index + ":" + sampleFeatures.get(index -1).toString();
         }
         return parsedFeatures;
+    }
+
+    private static ArrayList<Float> int16ToFloat32Converter (ArrayList<Integer> inputArray) {
+        ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
+        for (int i = 0; i < inputArray.size(); i++) {
+            int value = inputArray.get(i);
+            // If the high bit is on, then it is a negative number, and actually counts backwards.
+            float convertedValue = (value >= 0x8000) ? -(0x10000 - value) / 0x8000 : value / 0x7FFF;
+            convertedResult.set(i, convertedValue);
+        }
+        return convertedResult;
+    }
+
+    public static String classifyData(ArrayList<Integer> xArray, ArrayList<Integer> yArray, ArrayList<Integer> zArray) {
+        ArrayList<Float> convertedXArray = int16ToFloat32Converter(xArray);
+        ArrayList<Float> convertedYArray = int16ToFloat32Converter(yArray);
+        ArrayList<Float> convertedZArray = int16ToFloat32Converter(zArray);
+
+        System.out.println("X: " + convertedXArray.toString());
+        System.out.println("Y: " + convertedYArray.toString());
+        System.out.println("Z: " + convertedZArray.toString());
+
+        // TODO: Return processed value
+        return null;
     }
 
     public static void main(String[] args) {
@@ -73,9 +97,9 @@ public class trainingDataCreator {
                         // Printing for debug purpose
                         System.out.println("[trainingDataCreator] " + fileName);
                         // Parse data from given file
-                        dataParser.extractFilesData(fileName);
+                        DataParser.extractFilesData(fileName);
                         // Compute features for the given samples
-                        createAxisFeatures(dataParser.getxSamples(), dataParser.getySamples(), dataParser.getzSamples());
+                        createAxisFeatures(DataParser.getxSamples(), DataParser.getySamples(), DataParser.getzSamples());
                         // Write on output file features in classification format
                         output.write(getParsedFeatures());
                         output.write("\n");

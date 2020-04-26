@@ -1,25 +1,27 @@
 package fall.detection.server;
 
 import android.util.Log;
-
 import androidx.lifecycle.MutableLiveData;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import fall.detection.classifier.DataClassifier;
 import fall.detection.general.Constants;
 
 public class WSServer extends WebSocketServer {
 
     private MutableLiveData<String> debugPanel;
+    public WebSocket clientSocket = null;
 
     public WSServer(int port, MutableLiveData<String> debugPanel, MutableLiveData<String> serverStatus) throws UnknownHostException {
         super( new InetSocketAddress( port ) );
@@ -42,8 +44,17 @@ public class WSServer extends WebSocketServer {
             Log.i(Constants.WSS, "Client [ "+ conn.getRemoteSocketAddress().getAddress().getHostAddress()+  " ] connected");
         }
 
+        // Save client connection
+        clientSocket = conn;
         // Send a message to the new client
-        conn.send("Welcome to Andrei's server!");
+        JSONObject message = new JSONObject();
+        try {
+            message.put("title", "Welcome to Andrei's server!");
+            conn.send(message.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -62,13 +73,27 @@ public class WSServer extends WebSocketServer {
             debugPanel.postValue("[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message +"\n");
             Log.i(Constants.MESSAGE, "[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message);
         }
+
+        try {
+            JSONObject messageJson = new JSONObject(message);
+            String messageTitle = messageJson.getString("title");
+
+            // Received accelerometer batch
+            if (messageTitle.equals("accBatch")) {
+                // Parse received JSON
+                parseJson(messageJson);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
     @Override
     public void onMessage( WebSocket conn, ByteBuffer message ) {
+
         // Debug
         if (Constants.DEBUG) {
-            debugPanel.postValue("[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message +"\n");
-            Log.i(Constants.MESSAGE, "[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message);
+            debugPanel.postValue("[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message.toString() +"\n");
+            Log.i(Constants.MESSAGE, "[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message.toString());
         }
     }
 
@@ -97,26 +122,60 @@ public class WSServer extends WebSocketServer {
         setConnectionLostTimeout(100);
     }
 
-    public static void main( String[] args ) throws InterruptedException , IOException {
-        int port = 8887; // 843 flash policy port
+    private void parseJson(JSONObject messageJson) {
         try {
-            port = Integer.parseInt( args[ 0 ] );
-        } catch ( Exception ex ) {
-        }
-
-        WSServer s = new WSServer( port );
-        s.start();
-        Log.i(Constants.SERVER, "WebSocketServer started on port: " + s.getPort() );
-//        System.out.println( "ChatServer started on port: " + s.getPort() );
-
-        BufferedReader sysin = new BufferedReader( new InputStreamReader( System.in ) );
-        while ( true ) {
-            String in = sysin.readLine();
-            s.broadcast( in );
-            if( in.equals( "exit" ) ) {
-                s.stop(1000);
-                break;
+            JSONObject jsonArray = messageJson.getJSONObject("x16Array");
+            ArrayList<Integer> xArray = new ArrayList<>(jsonArray.length());
+            // Extract numbers from JSON array.
+            for (int i = 0; i < jsonArray.length(); i++) {
+                xArray.add(i, jsonArray.getInt(Integer.toString(i)));
             }
+
+            jsonArray = messageJson.getJSONObject("y16Array");
+            ArrayList<Integer> yArray = new ArrayList<>(jsonArray.length());
+            // Extract numbers from JSON array.
+            for (int i = 0; i < jsonArray.length(); i++) {
+                yArray.add(i, jsonArray.getInt(Integer.toString(i)));
+            }
+
+            jsonArray = messageJson.getJSONObject("z16Array");
+            ArrayList<Integer> zArray = new ArrayList<>(jsonArray.length());
+            // Extract numbers from JSON array.
+            for (int i = 0; i < jsonArray.length(); i++) {
+                zArray.add(i, jsonArray.getInt(Integer.toString(i)));
+            }
+
+            // DEBUG
+            if (Constants.DEBUG) {
+                debugPanel.postValue("[WSS] Accelerometer JSON parsed and sent to classification!\n");
+                Log.i(Constants.WSS,  "Accelerometer JSON parsed and sent to classification!");
+            }
+
+            DataClassifier.classifyData(xArray, yArray, zArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+    }
+
+    public static void main( String[] args ) throws InterruptedException , IOException {
+//        int port = 8887; // 843 flash policy port
+//        try {
+//            port = Integer.parseInt( args[ 0 ] );
+//        } catch ( Exception ex ) {
+//        }
+//
+//        WSServer s = new WSServer( port );
+//        s.start();
+//        Log.i(Constants.SERVER, "WebSocketServer started on port: " + s.getPort() );
+//
+//        BufferedReader sysin = new BufferedReader( new InputStreamReader( System.in ) );
+//        while ( true ) {
+//            String in = sysin.readLine();
+//            s.broadcast( in );
+//            if( in.equals( "exit" ) ) {
+//                s.stop(1000);
+//                break;
+//            }
+//        }
     }
 }
