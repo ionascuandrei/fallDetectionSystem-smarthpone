@@ -1,19 +1,20 @@
 package fall.detection.server;
 
 import android.util.Log;
-import androidx.lifecycle.MutableLiveData;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import androidx.lifecycle.MutableLiveData;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import fall.detection.classifier.DataClassifier;
 import fall.detection.general.Constants;
@@ -124,21 +125,21 @@ public class WSServer extends WebSocketServer {
 
     private void parseJson(JSONObject messageJson) {
         try {
-            JSONObject jsonArray = messageJson.getJSONObject("x16Array");
+            JSONObject jsonArray = messageJson.getJSONObject("xArray");
             ArrayList<Integer> xArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
                 xArray.add(i, jsonArray.getInt(Integer.toString(i)));
             }
 
-            jsonArray = messageJson.getJSONObject("y16Array");
+            jsonArray = messageJson.getJSONObject("yArray");
             ArrayList<Integer> yArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
                 yArray.add(i, jsonArray.getInt(Integer.toString(i)));
             }
 
-            jsonArray = messageJson.getJSONObject("z16Array");
+            jsonArray = messageJson.getJSONObject("zArray");
             ArrayList<Integer> zArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
@@ -151,7 +152,21 @@ public class WSServer extends WebSocketServer {
                 Log.i(Constants.WSS,  "Accelerometer JSON parsed and sent to classification!");
             }
 
-            DataClassifier.classifyData(xArray, yArray, zArray);
+            // Start classification of given data
+            String classificationResult = DataClassifier.classifyData(xArray, yArray, zArray);
+            // Sent back to the client the result
+            if (classificationResult != null ) {
+                // Send a message to the client
+                JSONObject message = new JSONObject();
+                try {
+                    if (clientSocket.isOpen()) {
+                        message.put("title", "classificationResult");
+                        clientSocket.send(message.toString());
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

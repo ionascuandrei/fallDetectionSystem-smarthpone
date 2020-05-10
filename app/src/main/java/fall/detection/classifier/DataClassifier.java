@@ -2,13 +2,9 @@ package fall.detection.classifier;
 
 import android.util.Log;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
-
 import fall.detection.general.Constants;
-import fall.detection.classifier.FeatureExtractor;
 
 /**
  * Computes a file which contains features of all the actions given in the input files in the classification format:
@@ -93,8 +89,10 @@ public class DataClassifier {
         String dataString = getParsedFeatures();
         // Standardize data
         standardizedFeatures = DataStandardize.standardizeData(dataString);
-
+        // Call Classification predict
+//        String classificationResult = SvmPredict.predictStringInput(standardizedFeatures, PUT_MODEL_HERE, 0);
         // TODO: Return processed value
+//        return classificationResult;
         return null;
     }
 
