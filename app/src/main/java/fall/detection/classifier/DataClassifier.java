@@ -1,10 +1,11 @@
 package fall.detection.classifier;
 
-import android.util.Log;
+import android.content.res.AssetManager;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-
-import fall.detection.general.Constants;
 
 /**
  * Computes a file which contains features of all the actions given in the input files in the classification format:
@@ -32,7 +33,7 @@ public class DataClassifier {
      * @param ySamples Array of samples for Y axis
      * @param zSamples Array of samples for Z axis
      */
-    public static void createAxisFeatures(ArrayList<Float> xSamples, ArrayList<Float> ySamples, ArrayList<Float> zSamples) {
+    private static void createAxisFeatures(ArrayList<Float> xSamples, ArrayList<Float> ySamples, ArrayList<Float> zSamples) {
         // Get features for X axis
         FeatureExtractor.extractFeatures(xSamples);
         sampleFeatures = FeatureExtractor.getFeatures();
@@ -48,36 +49,35 @@ public class DataClassifier {
      * Returns string with features for the input samples in classification format
      * @return String with features
      */
-    public static String getParsedFeatures() {
+    private static String getParsedFeatures() {
         for (int index = 1; index <= FeatureExtractor.getFeaturesNumber() * axisNumber; index++) {
             parsedFeatures = parsedFeatures + " " + index + ":" + sampleFeatures.get(index -1).toString();
         }
         return parsedFeatures;
     }
 
-    private static ArrayList<Float> int16ToFloat32Converter (ArrayList<Integer> inputArray) {
+    private static ArrayList<Float> gravityIntoAccelerationData (ArrayList<Double> inputArray) {
         ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
-        Log.i(Constants.WSS, "Size:" + inputArray.size() + "INPUT: " + inputArray.toString());
         for (int i = 0; i < inputArray.size(); i++) {
-            float value = inputArray.get(i);
-//            System.out.println("I: " + i + " value: " + value);
-            // If the high bit is on, then it is a negative number, and actually counts backwards.
-            float convertedValue = (value >= 0x8000) ? - ((0x10000 - value) / 0x8000) :  (value / 0x7FFF);
-//            Log.i(Constants.WSS, "CONV: " + convertedValue);
-            convertedResult.add(i, convertedValue);
+            // TODO : Modica Range-ul si Resolition conform accelerometrului din fitbit
+            float range = 16;
+            float resolution = 13;
+            float result = (float) (((2 * range) / Math.pow(2,resolution)) * inputArray.get(i));
+            convertedResult.add(i, result);
         }
         return convertedResult;
     }
 
-    public static String classifyData(ArrayList<Integer> xArray, ArrayList<Integer> yArray, ArrayList<Integer> zArray) {
-        // Convert 16Int to 32Float
-        ArrayList<Float> convertedXArray = int16ToFloat32Converter(xArray);
-        ArrayList<Float> convertedYArray = int16ToFloat32Converter(yArray);
-        ArrayList<Float> convertedZArray = int16ToFloat32Converter(zArray);
+    public static String classifyData(ArrayList<Double> xArray, ArrayList<Double> yArray, ArrayList<Double> zArray, AssetManager assetManager) throws IOException {
 
-        Log.i(Constants.WSS,  "X: " + convertedXArray.toString());
-        Log.i(Constants.WSS,  "Y: " + convertedYArray.toString());
-        Log.i(Constants.WSS,  "Z: " + convertedZArray.toString());
+        // TODO: Pe cazul asta ai facut din date G in AD (acceleration data) precum in Paper
+        ArrayList<Float> convertedXArray = gravityIntoAccelerationData(xArray);
+        ArrayList<Float> convertedYArray = gravityIntoAccelerationData(yArray);
+        ArrayList<Float> convertedZArray = gravityIntoAccelerationData(zArray);
+
+        System.out.println("ConvertedX: " + convertedXArray);
+        System.out.println("ConvertedY: " + convertedYArray);
+        System.out.println("ConvertedZ: " + convertedZArray);
 
         // TODO: Schimba daca este nevoie din ADL in altceva
         parsedFeatures = ADL;
@@ -89,11 +89,33 @@ public class DataClassifier {
         String dataString = getParsedFeatures();
         // Standardize data
         standardizedFeatures = DataStandardize.standardizeData(dataString);
-        // Call Classification predict
-//        String classificationResult = SvmPredict.predictStringInput(standardizedFeatures, PUT_MODEL_HERE, 0);
-        // TODO: Return processed value
-//        return classificationResult;
-        return null;
-    }
 
+        // Open Classifier Model file
+        String[] files;
+        BufferedReader model = null;
+        try {
+            files = assetManager.list("");
+            if (files != null) {
+                model = new BufferedReader(new InputStreamReader(assetManager.open(files[0])));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Call Classification predict
+        String classificationResult = SvmPredict.predictStringInput(standardizedFeatures, model, 0);
+        // Reset the BufferedReader at the start of the file
+
+        // TODO: Return processed value
+        if (Float.parseFloat(classificationResult) == Float.parseFloat("-1")) {
+            classificationResult = "ADL";
+        } else {
+            if (Float.parseFloat(classificationResult) == Float.parseFloat("1")) {
+                classificationResult = "FALL";
+            }
+        }
+        System.out.println("[DataClassifier] Classification result: " + classificationResult);
+        return classificationResult;
+//        return null;
+    }
 }

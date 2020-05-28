@@ -1,6 +1,8 @@
 package fall.detection.app;
 
+import android.content.res.AssetManager;
 import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 
 import org.json.JSONException;
@@ -12,13 +14,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import fall.detection.general.Constants;
 import fall.detection.server.WSServer;
 
-
 import static fall.detection.general.Constants.SERVER;
 
 public class Server extends Thread {
 
     // Single instance
     private static Server serverInstance;
+
+    // Classifier model file
+    private static AssetManager assetManager;
 
     // Thread variables
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
@@ -32,28 +36,29 @@ public class Server extends Thread {
     private WSServer webSocketServer;
 
     // Constructor
-    public Server() {
+    Server(AssetManager assetManager) {
         serverInstance = this;
         debugData = "";
+        Server.assetManager = assetManager;
     }
 
-    public static Server instance() {
+    static Server instance(AssetManager assetManager) {
         // Singleton instance
         if (serverInstance == null) {
-            serverInstance = new Server();
+            serverInstance = new Server(assetManager);
         }
         return serverInstance;
     }
 
-    public static boolean isServerInstance() {
+    static boolean isServerInstance() {
         return serverInstance != null;
     }
 
-    public AtomicBoolean isServerRunning() {
+    AtomicBoolean isServerRunning() {
         return isRunning;
     }
 
-    public void startServer() {
+    void startServer() {
         if (!isRunning.get()) {
             serverStatus.postValue(Constants.serverOnline);
 
@@ -62,7 +67,7 @@ public class Server extends Thread {
         }
     }
 
-    public void stopServer() {
+    void stopServer() {
         try {
             if (webSocketServer.clientSocket != null && webSocketServer.clientSocket.isOpen()) {
                 JSONObject message = new JSONObject();
@@ -86,7 +91,7 @@ public class Server extends Thread {
     public void run() {
         try {
             // Start the server
-            webSocketServer = new WSServer(Constants.SERVER_PORT, debugPanel, serverStatus);
+            webSocketServer = new WSServer(Constants.SERVER_PORT, debugPanel, serverStatus, assetManager);
             webSocketServer.start();
             while (isRunning.get()) {
                 // Handle messages

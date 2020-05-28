@@ -1,5 +1,6 @@
 package fall.detection.server;
 
+import android.content.res.AssetManager;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -7,6 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,13 +25,15 @@ public class WSServer extends WebSocketServer {
 
     private MutableLiveData<String> debugPanel;
     public WebSocket clientSocket = null;
+    private AssetManager assetManager;
 
-    public WSServer(int port, MutableLiveData<String> debugPanel, MutableLiveData<String> serverStatus) throws UnknownHostException {
+    public WSServer(int port, MutableLiveData<String> debugPanel, MutableLiveData<String> serverStatus, AssetManager assetManager) throws UnknownHostException {
         super( new InetSocketAddress( port ) );
         this.debugPanel = debugPanel;
+        this.assetManager = assetManager;
     }
 
-    public WSServer(int port) throws UnknownHostException {
+    public WSServer(int port) {
         super( new InetSocketAddress( port ) );
     }
 
@@ -69,12 +73,6 @@ public class WSServer extends WebSocketServer {
 
     @Override
     public void onMessage( WebSocket conn, String message ) {
-        // Debug
-        if (Constants.DEBUG) {
-            debugPanel.postValue("[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message +"\n");
-            Log.i(Constants.MESSAGE, "[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message);
-        }
-
         try {
             JSONObject messageJson = new JSONObject(message);
             String messageTitle = messageJson.getString("title");
@@ -83,6 +81,12 @@ public class WSServer extends WebSocketServer {
             if (messageTitle.equals("accBatch")) {
                 // Parse received JSON
                 parseJson(messageJson);
+            } else {
+                // Debug
+                if (Constants.DEBUG) {
+                    debugPanel.postValue("[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message +"\n");
+                    Log.i(Constants.MESSAGE, "[" + conn.getRemoteSocketAddress().getAddress().getHostAddress() + "] sent:\n"+ message);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -125,26 +129,33 @@ public class WSServer extends WebSocketServer {
 
     private void parseJson(JSONObject messageJson) {
         try {
-            JSONObject jsonArray = messageJson.getJSONObject("xArray");
-            ArrayList<Integer> xArray = new ArrayList<>(jsonArray.length());
+            JSONArray jsonArray = messageJson.getJSONArray("xArray");
+            ArrayList<Double> xArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
-                xArray.add(i, jsonArray.getInt(Integer.toString(i)));
+                xArray.add(i, jsonArray.getDouble(i));
             }
 
-            jsonArray = messageJson.getJSONObject("yArray");
-            ArrayList<Integer> yArray = new ArrayList<>(jsonArray.length());
+            System.out.println("xArray[" + xArray.size() + "] =" + xArray);
+
+            jsonArray = messageJson.getJSONArray("yArray");
+            ArrayList<Double> yArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
-                yArray.add(i, jsonArray.getInt(Integer.toString(i)));
+                yArray.add(i, jsonArray.getDouble(i));
             }
 
-            jsonArray = messageJson.getJSONObject("zArray");
-            ArrayList<Integer> zArray = new ArrayList<>(jsonArray.length());
+            System.out.println("yArray[" + yArray.size() + "] =" + yArray);
+
+            jsonArray = messageJson.getJSONArray("zArray");
+            ArrayList<Double> zArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
-                zArray.add(i, jsonArray.getInt(Integer.toString(i)));
+                zArray.add(i, jsonArray.getDouble(i));
             }
+
+            System.out.println("zArray[" + zArray.size() + "] =" + zArray);
+
 
             // DEBUG
             if (Constants.DEBUG) {
@@ -152,10 +163,17 @@ public class WSServer extends WebSocketServer {
                 Log.i(Constants.WSS,  "Accelerometer JSON parsed and sent to classification!");
             }
 
+
             // Start classification of given data
-            String classificationResult = DataClassifier.classifyData(xArray, yArray, zArray);
+            String classificationResult = DataClassifier.classifyData(xArray, yArray, zArray, assetManager);
             // Sent back to the client the result
-            if (classificationResult != null ) {
+            if (classificationResult.equals("FALL") || classificationResult.equals("ADL") ) {
+                // Debug
+                if (Constants.DEBUG) {
+                    debugPanel.postValue("Classification result = " + classificationResult + "\n");
+                    Log.i(Constants.WSS, "Classification result = " + classificationResult);
+                }
+
                 // Send a message to the client
                 JSONObject message = new JSONObject();
                 try {
@@ -167,7 +185,7 @@ public class WSServer extends WebSocketServer {
                     e.printStackTrace();
                 }
             }
-        } catch (JSONException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
     }

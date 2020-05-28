@@ -31,14 +31,14 @@ class SvmPredict {
 
 	private static svm_print_interface svm_print_string = svm_print_stdout;
 
-	static void info(String s)
+	private static void info(String s)
 	{
 		svm_print_string.print(s);
 	}
 
 	private static double atof(String s)
 	{
-		return Double.valueOf(s).doubleValue();
+		return Double.parseDouble(s);
 	}
 
 	private static int atoi(String s)
@@ -46,12 +46,19 @@ class SvmPredict {
 		return Integer.parseInt(s);
 	}
 
-	public static String predictStringInput(String input, svm_model model, int predict_probability) throws IOException
+	static String predictStringInput(String input, BufferedReader myModel, int predict_probability) throws IOException
 	{
 		int correct = 0;
 		int total = 0;
 		double error = 0;
 		double sump = 0, sumt = 0, sumpp = 0, sumtt = 0, sumpt = 0;
+
+		svm_model model = svm.svm_load_model(myModel);
+		if (model == null)
+		{
+			System.err.print("Can't open model file! \n");
+			System.exit(1);
+		}
 
 		int svm_type=svm.svm_get_svm_type(model);
 		int nr_class=svm.svm_get_nr_class(model);

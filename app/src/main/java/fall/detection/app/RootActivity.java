@@ -1,14 +1,15 @@
 package fall.detection.app;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-
+import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 
 import fall.detection.general.Constants;
 
@@ -16,6 +17,7 @@ public class RootActivity extends AppCompatActivity {
     // Instances
     private Server serverThread;
     private RootActivity uiContext;
+    private AssetManager assetManager;
 
     // Displayed components
     private TextView serverStatusView;
@@ -31,8 +33,11 @@ public class RootActivity extends AppCompatActivity {
         // Save my context
         uiContext = this;
 
+        // Initialize AssetManager
+        assetManager = getAssets();
+
         // Initialize server instance
-        serverThread = Server.instance();
+        serverThread = Server.instance(assetManager);
 
         // Initialize displayed components
         serverStatusView = findViewById(R.id.serverStatusView);
@@ -64,7 +69,7 @@ public class RootActivity extends AppCompatActivity {
                     serverStatusView.setText(value);
                     if (value.equals(Constants.serverOffline)) {
                         // Create a new Thread
-                        serverThread = new Server();
+                        serverThread = new Server(assetManager);
                         serverThread.serverStatus.observe(uiContext, this);
                         serverThread.debugPanel.observe(uiContext, debugPanelUpdater);
                     }
