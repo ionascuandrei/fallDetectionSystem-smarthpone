@@ -56,6 +56,12 @@ public class DataClassifier {
         return parsedFeatures;
     }
 
+    /**
+     * Converts Gravity into Acceleration Data with SysFall function:
+     * Acceleration [g]: [(2*Range)/(2^Resolution)]*AD
+     * @param inputArray Gravity array for given axis
+     * @return Array filled with AD values of inputArray
+     */
     private static ArrayList<Float> gravityIntoAccelerationData (ArrayList<Double> inputArray) {
         ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
         for (int i = 0; i < inputArray.size(); i++) {
@@ -71,10 +77,11 @@ public class DataClassifier {
     public static String classifyData(ArrayList<Double> xArray, ArrayList<Double> yArray, ArrayList<Double> zArray, AssetManager assetManager) throws IOException {
 
         // TODO: Pe cazul asta ai facut din date G in AD (acceleration data) precum in Paper
+        // Convert Gravity into AD as in classifier data
         ArrayList<Float> convertedXArray = gravityIntoAccelerationData(xArray);
         ArrayList<Float> convertedYArray = gravityIntoAccelerationData(yArray);
         ArrayList<Float> convertedZArray = gravityIntoAccelerationData(zArray);
-
+        // Debug
         System.out.println("ConvertedX: " + convertedXArray);
         System.out.println("ConvertedY: " + convertedYArray);
         System.out.println("ConvertedZ: " + convertedZArray);
@@ -104,9 +111,8 @@ public class DataClassifier {
 
         // Call Classification predict
         String classificationResult = SvmPredict.predictStringInput(standardizedFeatures, model, 0);
-        // Reset the BufferedReader at the start of the file
 
-        // TODO: Return processed value
+        // Convert float result into string result
         if (Float.parseFloat(classificationResult) == Float.parseFloat("-1")) {
             classificationResult = "ADL";
         } else {
@@ -114,8 +120,10 @@ public class DataClassifier {
                 classificationResult = "FALL";
             }
         }
+        // Debug
         System.out.println("[DataClassifier] Classification result: " + classificationResult);
+
+        // Return processed value
         return classificationResult;
-//        return null;
     }
 }

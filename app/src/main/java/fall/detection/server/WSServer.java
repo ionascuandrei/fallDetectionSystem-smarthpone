@@ -25,6 +25,7 @@ public class WSServer extends WebSocketServer {
 
     private MutableLiveData<String> debugPanel;
     public WebSocket clientSocket = null;
+    // Asset Manager for assets folder
     private AssetManager assetManager;
 
     public WSServer(int port, MutableLiveData<String> debugPanel, MutableLiveData<String> serverStatus, AssetManager assetManager) throws UnknownHostException {
@@ -74,7 +75,9 @@ public class WSServer extends WebSocketServer {
     @Override
     public void onMessage( WebSocket conn, String message ) {
         try {
+            // Create JSON form received String message
             JSONObject messageJson = new JSONObject(message);
+            // Parse the title
             String messageTitle = messageJson.getString("title");
 
             // Received accelerometer batch
@@ -129,40 +132,41 @@ public class WSServer extends WebSocketServer {
 
     private void parseJson(JSONObject messageJson) {
         try {
+            // Array for X values
             JSONArray jsonArray = messageJson.getJSONArray("xArray");
             ArrayList<Double> xArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
                 xArray.add(i, jsonArray.getDouble(i));
             }
-
+            // Debug
             System.out.println("xArray[" + xArray.size() + "] =" + xArray);
 
+            // Array for Y values
             jsonArray = messageJson.getJSONArray("yArray");
             ArrayList<Double> yArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
                 yArray.add(i, jsonArray.getDouble(i));
             }
-
+            // Debug
             System.out.println("yArray[" + yArray.size() + "] =" + yArray);
 
+            // Array for Z values
             jsonArray = messageJson.getJSONArray("zArray");
             ArrayList<Double> zArray = new ArrayList<>(jsonArray.length());
             // Extract numbers from JSON array.
             for (int i = 0; i < jsonArray.length(); i++) {
                 zArray.add(i, jsonArray.getDouble(i));
             }
-
+            // Debug
             System.out.println("zArray[" + zArray.size() + "] =" + zArray);
-
 
             // DEBUG
             if (Constants.DEBUG) {
                 debugPanel.postValue("[WSS] Accelerometer JSON parsed and sent to classification!\n");
                 Log.i(Constants.WSS,  "Accelerometer JSON parsed and sent to classification!");
             }
-
 
             // Start classification of given data
             String classificationResult = DataClassifier.classifyData(xArray, yArray, zArray, assetManager);

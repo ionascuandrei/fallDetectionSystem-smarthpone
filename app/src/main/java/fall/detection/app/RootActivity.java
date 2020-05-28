@@ -17,6 +17,7 @@ public class RootActivity extends AppCompatActivity {
     // Instances
     private Server serverThread;
     private RootActivity uiContext;
+    // Asset manager for assets folder
     private AssetManager assetManager;
 
     // Displayed components

@@ -16,12 +16,13 @@ import fall.detection.server.WSServer;
 
 import static fall.detection.general.Constants.SERVER;
 
+
 public class Server extends Thread {
 
     // Single instance
     private static Server serverInstance;
 
-    // Classifier model file
+    // Asset Manager for assets folder
     private static AssetManager assetManager;
 
     // Thread variables
@@ -69,13 +70,18 @@ public class Server extends Thread {
 
     void stopServer() {
         try {
+            // Close any socket with active client if is open
             if (webSocketServer.clientSocket != null && webSocketServer.clientSocket.isOpen()) {
+                // Announce any client that server is closing
                 JSONObject message = new JSONObject();
                 message.put("title", "serverClosed");
                 webSocketServer.clientSocket.send(message.toString());
             }
+            // Close WSS
             webSocketServer.stop();
+            // Close Server thread
             isRunning.set(false);
+            // Update UI status for server
             serverStatus.setValue(Constants.serverOffline);
             // Debug
             if (Constants.DEBUG) {
@@ -94,6 +100,7 @@ public class Server extends Thread {
             webSocketServer = new WSServer(Constants.SERVER_PORT, debugPanel, serverStatus, assetManager);
             webSocketServer.start();
             while (isRunning.get()) {
+                // TODO: Fix Server Polling
                 // Handle messages
             }
         } catch (IOException ioException) {
