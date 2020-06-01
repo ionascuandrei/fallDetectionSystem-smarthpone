@@ -66,10 +66,10 @@ public class DataClassifier {
         ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
         for (int i = 0; i < inputArray.size(); i++) {
             // TODO : Modica Range-ul si Resolition conform accelerometrului din fitbit
-            float range = 16;
-            float resolution = 13;
-            float result = (float) (((2 * range) / Math.pow(2,resolution)) * inputArray.get(i));
-            convertedResult.add(i, result);
+            double range = 16;
+            double resolution = 13;
+            double result = (inputArray.get(i) / ((2 * range) / Math.pow(2,resolution)));
+            convertedResult.add(i, (float) result);
         }
         return convertedResult;
     }
