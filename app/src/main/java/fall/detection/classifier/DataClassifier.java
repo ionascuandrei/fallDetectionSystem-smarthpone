@@ -59,6 +59,7 @@ public class DataClassifier {
     /**
      * Converts Gravity into Acceleration Data with SysFall function:
      * Acceleration [g]: [(2*Range)/(2^Resolution)]*AD
+     * AD = G / ((2*range) / (2^Resolution))
      * @param inputArray Gravity array for given axis
      * @return Array filled with AD values of inputArray
      */
@@ -66,9 +67,10 @@ public class DataClassifier {
         ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
         for (int i = 0; i < inputArray.size(); i++) {
             // TODO : Modica Range-ul si Resolition conform accelerometrului din fitbit
+            double gValue = 9.81;
             double range = 16;
-            double resolution = 13;
-            double result = (inputArray.get(i) / ((2 * range) / Math.pow(2,resolution)));
+            double resolution = 16;
+            double result = ((inputArray.get(i) / gValue) / ((2 * range) / Math.pow(2,resolution)));
             convertedResult.add(i, (float) result);
         }
         return convertedResult;
@@ -87,7 +89,7 @@ public class DataClassifier {
         System.out.println("ConvertedZ: " + convertedZArray);
 
         // TODO: Schimba daca este nevoie din ADL in altceva
-        parsedFeatures = ADL;
+        parsedFeatures = FALL;
         // Save data in DataParser
         DataParser.extractData(convertedXArray, convertedYArray, convertedZArray);
         // Compute features for the given samples
