@@ -22,11 +22,17 @@ public class DataStandardize {
     public static void calculateDeviation() {
         for (int feature = 0; feature < FeatureExtractor.getFeaturesNumber() * 3; feature++) {
             float variance = sampleFeatures.get(feature) - meanValue.get(feature);
-            variance = (float) Math.pow(variance, 2);
+            if (variance != 0) {
+                variance = (float) Math.pow(variance, 2);
+            } else {
+                variance = 0;
+            }
             standardDeviation.set(feature, standardDeviation.get(feature) + variance);
-            float stDev = standardDeviation.get(feature) / (float) (sampleFeatures.size() - 1);
-            stDev = (float) Math.sqrt(stDev);
-            standardDeviation.set(feature, stDev);
+            if (standardDeviation.get(feature) != 0) {
+                float stDev = standardDeviation.get(feature) / (float) (sampleFeatures.size() - 1);
+                stDev = (float) Math.sqrt(stDev);
+                standardDeviation.set(feature, stDev);
+            }
         }
     }
 
@@ -45,8 +51,11 @@ public class DataStandardize {
      */
     public static void standardizeDataset() {
         for (int feature = 0; feature < FeatureExtractor.getFeaturesNumber() * 3; feature++) {
-            float stdValue = (sampleFeatures.get(feature) - meanValue.get(feature))
-                    / standardDeviation.get(feature);
+            float stdValue = 0;
+            if (sampleFeatures.get(feature) - meanValue.get(feature) != 0) {
+                stdValue = (sampleFeatures.get(feature) - meanValue.get(feature))
+                        / standardDeviation.get(feature);
+            }
             sampleFeatures.set(feature, stdValue);
         }
     }

@@ -67,8 +67,8 @@ public class DataClassifier {
         ArrayList<Float> convertedResult = new ArrayList<>(inputArray.size());
         for (int i = 0; i < inputArray.size(); i++) {
             // TODO : Modica Range-ul si Resolition conform accelerometrului din fitbit
-            double gValue = 9.81;
-            double range = 16;
+            double gValue = 9.80665;
+            double range = 4;
             double resolution = 16;
             double result = ((inputArray.get(i) / gValue) / ((2 * range) / Math.pow(2,resolution)));
             convertedResult.add(i, (float) result);
@@ -98,6 +98,8 @@ public class DataClassifier {
         String dataString = getParsedFeatures();
         // Standardize data
         standardizedFeatures = DataStandardize.standardizeData(dataString);
+
+        System.out.println("Standardizat: " + standardizedFeatures);
 
         // Open Classifier Model file
         String[] files;
