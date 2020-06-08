@@ -183,6 +183,7 @@ public class WSServer extends WebSocketServer {
                 try {
                     if (clientSocket.isOpen()) {
                         message.put("title", "classificationResult");
+                        message.put("result", classificationResult);
                         clientSocket.send(message.toString());
                     }
                 } catch (JSONException e) {
