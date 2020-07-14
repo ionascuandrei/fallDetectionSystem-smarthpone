@@ -6,7 +6,9 @@
 >
 > Mobile Component
 
-<img src="https://i.ibb.co/vZnhT9Z/flow.png" alt="flow" style="width=50%; height=50%;" />
+<p align="center">
+<img src="https://i.ibb.co/vZnhT9Z/flow.png" width="67%"/>
+</p>
 
 ## Usage
 
@@ -50,7 +52,10 @@ Our system provides the following features:
 
 Designing a multi-platform solution, we have split the system in three main components: **Smartwatch Component**, **Mobile Component** and **Machine Learning Component**.
 
-<img src="https://i.ibb.co/kck2s1z/components-Overview.png" alt="componentsOverview" style="zoom:67%;" />
+<p align="center">
+<img src="https://i.ibb.co/kck2s1z/components-Overview.png" alt="componentsOverview" width="67%" />
+</p>
+
 
 **Smartwatch Component** represents the data acquisition layer implemented for Fitbit devices using the Fitbit SDK and tools. It consists of two components: the Application one that uses Fitbit's Device API to collect motion sensor data and the Companion one, which receives the data from the Application and runs inside the mobile Fitbit application.
 
@@ -61,7 +66,9 @@ Designing a multi-platform solution, we have split the system in three main comp
  All these components are communicating with each other with the purpose to detect if the wearer had a fall. The system does not require Internet connection to function after installation or other widgets apart from the smartphone and the smartwatch. The communication between the smartwatch application and the companion is over Bluetooth and uses the available messaging APIs provided by Fitbit SDK. The companion and the Android application will communicate via WebSocket messages. These
  messages are sent locally between the Fitbit app and the server hosted on the same mobile device.
 
-![System Overview](https://i.ibb.co/8x9pNGp/System-Overview.png)
+<p align="center">
+<img src="https://i.ibb.co/8x9pNGp/System-Overview.png" alt="systemOverview" width="67%" />
+</p>
 
 ## Mobile Component
 
@@ -81,8 +88,10 @@ In the current state, the server can be opened and closed from the user interfac
 
 For the mobile application we implemented a simple view dedicated for the user, all the functions and processing being available in the back-end. It contains two buttons from which we can start and stop the server and a debug panel. The panel represents the most of the view containing all the needed notifications: when the client is connecting or disconnecting, the result of the classification and link tests.
 
-<img src="https://i.ibb.co/DRjb82n/mobile-explained-Menu.png" alt="mobile-explainedMenu" style="zoom:67%;" />
 
+<p align="center">
+<img src="https://i.ibb.co/DRjb82n/mobile-explained-Menu.png" alt="mobile-explainedMenu" width="67%" />
+</p>
 
 
 ## Smartwatch Component & Machine Learning Component
@@ -97,8 +106,10 @@ For the mobile application we implemented a simple view dedicated for the user, 
 
 The main idea behind the system is to gather acceleration data from the smartwatch during the day. In 10 seconds intervals, these values are pre-parsed and packed in the smartwatch and sent to the Fitbit Companion installed in the smartphone. Upon receiving all the required data, we send them to the server. There are parsed and prepared for the classification. The classifier is receiving the parsing data and classifies the input as Fall or as Daily Action. This result is transferred to the wearer smartwatch. If the result marks an actual fall, the wearer is asked for confirmation. If confirmed or the time expires, the smartwatch can send an alert message to emergency contacts.
 
-<img src="https://i.ibb.co/vZnhT9Z/flow.png" alt="flow" style="zoom: 67%;" />
 
+<p align="center">
+<img src="https://i.ibb.co/vZnhT9Z/flow.png" width="67%"/>
+</p>
 
 
 ## Testing Environment
