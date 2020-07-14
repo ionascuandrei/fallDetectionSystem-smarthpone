@@ -1,8 +1,8 @@
 # Fall Detection System for Wearables
 
-> [Smartwatch Component ](https://github.com/ionascuandrei/fallDetection-Watch)
+> [Smartwatch Component ](https://github.com/ionascuandrei/fallDetection-Watch) - External Repository
 >
-> [Machine Learning Component ](https://github.com/ionascuandrei/fallDetection-Classifier)
+> [Machine Learning Component ](https://github.com/ionascuandrei/fallDetection-Classifier) - External Repository
 >
 > Mobile Component
 
