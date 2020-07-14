@@ -6,7 +6,7 @@
 >
 > Mobile Component
 
-<img src="https://i.ibb.co/vZnhT9Z/flow.png" alt="flow" style="zoom: 67%;" />
+<img src="https://i.ibb.co/vZnhT9Z/flow.png" alt="flow" style="width=50%;" />
 
 ## Usage
 
