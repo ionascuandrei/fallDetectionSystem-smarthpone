@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="fall.detection.app">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="com.example.latest.permission.MAPS_RECEIVE" />
 
     <application
         android:networkSecurityConfig="@xml/my_network_security_config"
@@ -15,9 +21,11 @@
         <service
             android:name=".Server"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            tools:ignore="Instantiatable" />
 
-        <activity android:name=".RootActivity">
+        <activity android:name=".RootActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

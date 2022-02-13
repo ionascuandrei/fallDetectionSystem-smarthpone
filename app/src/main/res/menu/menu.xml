@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/main_menu_button"
+        android:title="Home"></item>
+
+    <item android:id="@+id/map_button"
+        android:title="Map"></item>
+
+    <item android:id="@+id/server_button"
+        android:title="Server"></item>
+
+    <item android:id="@+id/exit"
+        android:title="Exit"></item>
+</menu>

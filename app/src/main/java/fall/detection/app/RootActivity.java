@@ -1,15 +1,37 @@
 package fall.detection.app;
 
+import static fall.detection.general.Constants.MAPVIEW_BUNDLE_KEY;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.Objects;
 
 import fall.detection.general.Constants;
 
@@ -25,11 +47,34 @@ public class RootActivity extends AppCompatActivity {
     private TextView debugPanelView;
     private Button startServerButton;
     private Button stopServerButton;
+    private Button serverButton;
+    private Button mapButton;
+    private Button springButton;
+    private Button profileButton;
 
+
+    // Map
+    private MapView mapView;
+
+    // Layouts
+    LinearLayout mainMenuLayout;
+    LinearLayout serverLayout;
+    ConstraintLayout mapLayout;
+
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Set Logo
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setIcon(R.drawable.fall_foreground);
+
+        // Set Layouts
+        mainMenuLayout = (LinearLayout) findViewById(R.id.main_menu_layout);
+        serverLayout = (LinearLayout) findViewById(R.id.server_layout);
+        mapLayout = (ConstraintLayout) findViewById(R.id.map_layout);
 
         // Save my context
         uiContext = this;
@@ -45,6 +90,10 @@ public class RootActivity extends AppCompatActivity {
         startServerButton = findViewById(R.id.startServerButton);
         stopServerButton = findViewById(R.id.stopServerButton);
         debugPanelView = findViewById(R.id.debugPanel);
+        serverButton = findViewById(R.id.serverButton);
+        mapButton = findViewById(R.id.mapButton);
+        springButton = findViewById(R.id.springButton);
+        profileButton = findViewById(R.id.profileButton);
 
         // Initialize display values
         if (!serverThread.isServerRunning().get()) {
@@ -56,7 +105,7 @@ public class RootActivity extends AppCompatActivity {
         final Observer<String> debugPanelUpdater = new Observer<String>() {
             @Override
             public void onChanged(@Nullable final String updates) {
-                if(updates != null) {
+                if (updates != null) {
                     debugPanelView.append(updates);
                 }
             }
@@ -98,6 +147,26 @@ public class RootActivity extends AppCompatActivity {
                             serverThread.stopServer();
                         }
                         break;
+
+                    case R.id.mapButton:
+                        mapLayout.setVisibility(ConstraintLayout.VISIBLE);
+                        serverLayout.setVisibility(LinearLayout.GONE);
+                        mainMenuLayout.setVisibility(LinearLayout.GONE);
+                        break;
+
+                    case R.id.serverButton:
+                        serverLayout.setVisibility(LinearLayout.VISIBLE);
+                        mapLayout.setVisibility(ConstraintLayout.GONE);
+                        mainMenuLayout.setVisibility(LinearLayout.GONE);
+                        break;
+
+                    case R.id.springButton:
+                        // TODO
+                        break;
+
+                    case R.id.profileButton:
+                        // TODO
+                        break;
                 }
             }
         };
@@ -105,6 +174,47 @@ public class RootActivity extends AppCompatActivity {
         // Allocate onClick handler for buttons
         startServerButton.setOnClickListener(onClickListenerHandler);
         stopServerButton.setOnClickListener(onClickListenerHandler);
+        mapButton.setOnClickListener(onClickListenerHandler);
+        serverButton.setOnClickListener(onClickListenerHandler);
+        profileButton.setOnClickListener(onClickListenerHandler);
+        springButton.setOnClickListener(onClickListenerHandler);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.map_button:
+                mapLayout.setVisibility(ConstraintLayout.VISIBLE);
+                serverLayout.setVisibility(LinearLayout.GONE);
+                mainMenuLayout.setVisibility(LinearLayout.GONE);
+                break;
+            case R.id.server_button:
+                serverLayout.setVisibility(LinearLayout.VISIBLE);
+                mapLayout.setVisibility(ConstraintLayout.GONE);
+                mainMenuLayout.setVisibility(LinearLayout.GONE);
+                break;
+            case R.id.main_menu_button:
+                mainMenuLayout.setVisibility(LinearLayout.VISIBLE);
+                mapLayout.setVisibility(ConstraintLayout.GONE);
+                serverLayout.setVisibility(LinearLayout.GONE);
+                break;
+            case R.id.exit:
+                finish();
+                System.exit(0);
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -141,4 +251,5 @@ public class RootActivity extends AppCompatActivity {
             debugPanelView.append("[ERROR] AJUNG SI AIIIIIIIICI LA RESTORE INSTANCE\n");
         }
     }
+
 }

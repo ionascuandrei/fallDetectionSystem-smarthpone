@@ -16,4 +16,6 @@ public interface Constants {
     String SERVER = "[Fall Detection Server]";
     String MESSAGE = "[MESSAGE]";
     String WSS = "[WebServerSocket]";
+
+    static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
 }
