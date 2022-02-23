@@ -1,10 +1,6 @@
 package fall.detection.app;
 
-import static fall.detection.general.Constants.MAPVIEW_BUNDLE_KEY;
-
-import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,16 +16,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import java.util.Objects;
 
@@ -52,14 +46,21 @@ public class RootActivity extends AppCompatActivity {
     private Button springButton;
     private Button profileButton;
 
+    // Spring req buttons
+    private Button getUsers;
+    private Button getUser;
+    private Button getContacts;
+    private Button getEmergency;
 
-    // Map
-    private MapView mapView;
+    private TextView textView;
+    // Instantiate the RequestQueue.
+    RequestQueue queue;
 
     // Layouts
     LinearLayout mainMenuLayout;
     LinearLayout serverLayout;
     ConstraintLayout mapLayout;
+    ConstraintLayout springLayout;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -75,6 +76,12 @@ public class RootActivity extends AppCompatActivity {
         mainMenuLayout = (LinearLayout) findViewById(R.id.main_menu_layout);
         serverLayout = (LinearLayout) findViewById(R.id.server_layout);
         mapLayout = (ConstraintLayout) findViewById(R.id.map_layout);
+        springLayout = (ConstraintLayout) findViewById(R.id.spring_layout);
+
+        // Set Volley
+        textView = (TextView) findViewById(R.id.volleyText);
+        // Instantiate the RequestQueue.
+        queue = Volley.newRequestQueue(this);
 
         // Save my context
         uiContext = this;
@@ -94,6 +101,12 @@ public class RootActivity extends AppCompatActivity {
         mapButton = findViewById(R.id.mapButton);
         springButton = findViewById(R.id.springButton);
         profileButton = findViewById(R.id.profileButton);
+
+        // Init Spring rq buttons
+        getUsers = findViewById(R.id.getUsers);
+        getUser = findViewById(R.id.getUser);
+        getContacts = findViewById(R.id.getContacts);
+        getEmergency = findViewById(R.id.getEmergency);
 
         // Initialize display values
         if (!serverThread.isServerRunning().get()) {
@@ -152,20 +165,41 @@ public class RootActivity extends AppCompatActivity {
                         mapLayout.setVisibility(ConstraintLayout.VISIBLE);
                         serverLayout.setVisibility(LinearLayout.GONE);
                         mainMenuLayout.setVisibility(LinearLayout.GONE);
+                        springLayout.setVisibility(LinearLayout.GONE);
                         break;
 
                     case R.id.serverButton:
                         serverLayout.setVisibility(LinearLayout.VISIBLE);
                         mapLayout.setVisibility(ConstraintLayout.GONE);
                         mainMenuLayout.setVisibility(LinearLayout.GONE);
+                        springLayout.setVisibility(LinearLayout.GONE);
                         break;
 
                     case R.id.springButton:
-                        // TODO
+                        springLayout.setVisibility(LinearLayout.VISIBLE);
+                        serverLayout.setVisibility(LinearLayout.GONE);
+                        mapLayout.setVisibility(ConstraintLayout.GONE);
+                        mainMenuLayout.setVisibility(LinearLayout.GONE);
                         break;
 
                     case R.id.profileButton:
                         // TODO
+                        break;
+
+                    case R.id.getUsers:
+                        getUsers();
+                        break;
+
+                    case R.id.getUser:
+                        getUser();
+                        break;
+
+                    case R.id.getContacts:
+                        getContacts();
+                        break;
+
+                    case R.id.getEmergency:
+                        getEmergency();
                         break;
                 }
             }
@@ -179,6 +213,94 @@ public class RootActivity extends AppCompatActivity {
         profileButton.setOnClickListener(onClickListenerHandler);
         springButton.setOnClickListener(onClickListenerHandler);
 
+        getUsers.setOnClickListener(onClickListenerHandler);
+        getUser.setOnClickListener(onClickListenerHandler);
+        getContacts.setOnClickListener(onClickListenerHandler);
+        getEmergency.setOnClickListener(onClickListenerHandler);
+    }
+
+    public void getUsers() {
+        // Volley Library
+        String url = "http://10.0.2.2:8080/fallDetectionSystem/users";
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        textView.setText("Response is: " + response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                textView.setText(error.toString());
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+    }
+
+    public void getContacts() {
+        // Volley Library
+        String url = "http://10.0.2.2:8080/fallDetectionSystem/contacts?userId=1";
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        textView.setText("Response is: " + response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                textView.setText(error.toString());
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+    }
+
+    public void getUser() {
+        // Volley Library
+        String url = "http://10.0.2.2:8080/fallDetectionSystem/user?userId=1";
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        textView.setText("Response is: " + response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                textView.setText(error.toString());
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+    }
+
+    public void getEmergency() {
+        // Volley Library
+        String url = "http://10.0.2.2:8080/fallDetectionSystem/emergencyDetails?userId=1";
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // Display the first 500 characters of the response string.
+                        textView.setText("Response is: " + response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                textView.setText(error.toString());
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
     }
 
     @Override
@@ -197,14 +319,22 @@ public class RootActivity extends AppCompatActivity {
                 mapLayout.setVisibility(ConstraintLayout.VISIBLE);
                 serverLayout.setVisibility(LinearLayout.GONE);
                 mainMenuLayout.setVisibility(LinearLayout.GONE);
+                springLayout.setVisibility(ConstraintLayout.GONE);
                 break;
             case R.id.server_button:
                 serverLayout.setVisibility(LinearLayout.VISIBLE);
                 mapLayout.setVisibility(ConstraintLayout.GONE);
                 mainMenuLayout.setVisibility(LinearLayout.GONE);
+                springLayout.setVisibility(ConstraintLayout.GONE);
                 break;
             case R.id.main_menu_button:
                 mainMenuLayout.setVisibility(LinearLayout.VISIBLE);
+                mapLayout.setVisibility(ConstraintLayout.GONE);
+                serverLayout.setVisibility(LinearLayout.GONE);
+                springLayout.setVisibility(ConstraintLayout.GONE);
+            case R.id.spring_button:
+                springLayout.setVisibility(ConstraintLayout.VISIBLE);
+                mainMenuLayout.setVisibility(LinearLayout.GONE);
                 mapLayout.setVisibility(ConstraintLayout.GONE);
                 serverLayout.setVisibility(LinearLayout.GONE);
                 break;

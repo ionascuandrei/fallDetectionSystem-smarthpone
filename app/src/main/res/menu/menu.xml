@@ -10,6 +10,9 @@
     <item android:id="@+id/server_button"
         android:title="Server"></item>
 
+    <item android:id="@+id/spring_button"
+        android:title="Spring"></item>
+
     <item android:id="@+id/exit"
         android:title="Exit"></item>
 </menu>
